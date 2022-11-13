@@ -1,20 +1,37 @@
-from sklearn.datasets import make_blobs
-from sklearn.cluster import KMeans
+import numpy as np
+from sklearn.datasets import make_circles, make_moons
+from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 
-#sample data:400개,중심 4개, 2차원 벡터 데이터 set 생성
-X,y_true = make_blobs(n_samples=400, centers=4 , n_features= 2, cluster_std=1.2)
-plt.scatter(X[:,0] , X[:,1] , s=20)
-plt.show()
+n_sample = 1000
+np.random.seed(2)
+X1, y1 = make_circles(n_samples=n_sample , factor=.5, noise=.09)
+X2, y2 = make_moons(n_samples=n_sample , noise=.1)
 
-#4개로 나누고, 초기화 값은 random으로 kmean 시작
-kmeans = KMeans(n_clusters=4, init='k-means++')
-#X를 kmeans에 넣기
-kmeans.fit(X)
-#센터값 추출
-center = kmeans.cluster_centers_
-#새 클러스터 출력
-y_kmeans = kmeans.fit_predict(X)
-plt.scatter(X[:,0] , X[:,1] , c=y_kmeans , s=20 , cmap='viridis')
-plt.scatter(center[:,0] , center[:,1] , c='black' , s=100)
+def plot_DBSCAN(title, X, eps, xlim, ylim):
+    model = DBSCAN(eps=eps)
+    y_pred = model.fit(X)
+    idx_outlier = np.logical_not((model.labels_ == 0)|(model.labels_ == 1))
+    plt.scatter(X[idx_outlier, 0], X[idx_outlier, 1], marker='x', lw=1, s=20)
+    plt.scatter(X[model.labels_ == 0, 0], X[model.labels_ == 0, 1], marker='o', facecolor='g', s=5)
+    plt.scatter(X[model.labels_ == 1, 0], X[model.labels_ == 1, 1], marker='s', facecolor='y', s=5)
+    X_core = X[model.core_sample_indices_, :]
+    idx_core_0 = np.array(list(set(np.where(model.labels_ == 0)[0]).intersection(model.core_sample_indices_)))
+    idx_core_1 = np.array(list(set(np.where(model.labels_ == 1)[0]).intersection(model.core_sample_indices_)))
+    plt.scatter(X[idx_core_0, 0], X[idx_core_0, 1], marker='o', facecolor='g', s=80, alpha=0.3)
+    plt.scatter(X[idx_core_1, 0], X[idx_core_1, 1], marker='s', facecolor='y', s=80, alpha=0.3)
+    plt.grid(False)
+    plt.xlim(*xlim)
+    plt.ylim(*ylim)
+    plt.xticks(())
+    plt.yticks(())
+    plt.title(title)
+    return y_pred
+
+plt.figure(figsize=(10, 5))
+plt.subplot(121)
+y_pred1 = plot_DBSCAN("circle cluster", X1, 0.1, (-1.2, 1.2), (-1.2, 1.2))
+plt.subplot(122)
+y_pred2 = plot_DBSCAN("moon cluster", X2, 0.1, (-1.5, 2.5), (-0.8, 1.2))
+plt.tight_layout()
 plt.show()
