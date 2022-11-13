@@ -8,7 +8,7 @@ plt.scatter(X[:,0] , X[:,1] , s=20)
 plt.show()
 
 #4개로 나누고, 초기화 값은 random으로 kmean 시작
-kmeans = KMeans(n_clusters=4, init='random')
+kmeans = KMeans(n_clusters=4, init='k-means++')
 #X를 kmeans에 넣기
 kmeans.fit(X)
 #센터값 추출
